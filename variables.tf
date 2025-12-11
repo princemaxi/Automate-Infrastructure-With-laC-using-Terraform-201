@@ -54,12 +54,6 @@ variable "name" {
 variable "tags" {
   type        = map(string)
   description = "Common tags applied to all resources"
-  default = {
-    Environment     = "production"
-    Owner-Email     = "maxiprofresh@gmail.com"
-    Managed-By      = "Terraform"
-    Billing-Account = "686255973523"
-  }
 }
 
 variable "ami" {
