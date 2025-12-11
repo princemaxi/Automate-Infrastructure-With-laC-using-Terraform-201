@@ -19,10 +19,32 @@ resource "aws_vpc" "main" {
 resource "aws_subnet" "public" {
   count                   = var.preferred_number_of_public_subnets == null ? length(data.aws_availability_zones.available.names) : var.preferred_number_of_public_subnets
   vpc_id                  = aws_vpc.main.id
-  cidr_block              = cidrsubnet(var.vpc_cidr, 4, count.index)
+  cidr_block              = cidrsubnet(var.vpc_cidr, 4, count.index * 2)
   map_public_ip_on_launch = true
   availability_zone       = data.aws_availability_zones.available.names[count.index]
-  tags = {
-    Name = "public-subnet-${count.index + 1}"
-  }
+  
+  tags = merge(
+    var.tags,
+    {
+      Name = format("public-subnet-%02d", count.index + 1)
+      Tier = "public"
+    }
+  )
+} 
+
+resource "aws_subnet" "private" {
+  count                   = var.preferred_number_of_private_subnets == null ? length(data.aws_availability_zones.available.names) : var.preferred_number_of_private_subnets
+  vpc_id                  = aws_vpc.main.id
+  availability_zone       = var.azs[floor(count.index / 2)]
+  cidr_block              = cidrsubnet(var.vpc_cidr, 4, count.index * 2 + 1)
+  map_public_ip_on_launch = false
+
+  tags = merge(
+    var.tags,
+    {
+      Name = format("private-subnet-%02d", count.index + 1)
+      Tier = "private"
+    }
+  )
 }
+
